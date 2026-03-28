@@ -128,4 +128,4 @@ Virtual environment: detected
 
 ## License
 
-MIT
+This project is licensed under the [MIT License](LICENSE).
