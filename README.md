@@ -2,24 +2,26 @@
 
 `pyenv-doctor` is a minimal Python command-line tool for beginners.
 
-It scans the current directory, checks whether it looks like a Python project, and tells you whether the current Python interpreter is running inside a virtual environment.
+It scans a directory, checks whether it looks like a Python project, and tells you whether the current Python interpreter is running inside a virtual environment.
 
-## What It Checks
+## Current Features
 
-This MVP checks for these common Python project files:
+This MVP currently supports:
+
+- scanning the current working directory
+- scanning a custom directory path
+- detecting common Python project marker files
+- detecting whether Python is running inside a virtual environment
+- showing clear English error messages for invalid paths
+
+The project marker files checked are:
 
 - `requirements.txt`
 - `pyproject.toml`
 - `setup.py`
 - `setup.cfg`
 
-If at least one of them exists, the tool prints:
-
-`Conclusion: this looks like a Python project`
-
-It also checks whether the current Python is running in a virtual environment.
-
-Supported common cases:
+Supported virtual environment cases:
 
 - `venv`
 - `virtualenv`
@@ -27,7 +29,7 @@ Supported common cases:
 
 ## Why Virtual Environments Are Useful
 
-Virtual environments help keep project dependencies isolated.  
+Virtual environments help keep project dependencies isolated.
 This makes it easier to avoid version conflicts between different Python projects on the same machine.
 
 ## Project Structure
@@ -44,23 +46,19 @@ pyenv-doctor/
 
 - Python 3.11+
 
+Tested on:
+
+- Python 3.14
+
 ## Installation
 
-### 1. Make sure Python is available
+This MVP uses only the Python standard library, so there are no third-party dependencies to install.
+
+To check whether Python is available:
 
 ```powershell
 python --version
 ```
-
-### 2. Enter the project directory
-
-```powershell
-cd pyenv-doctor
-```
-
-### 3. Install dependencies
-
-This MVP uses only the Python standard library, so there are no third-party packages to install.
 
 ## Run
 
@@ -70,7 +68,19 @@ Run the tool from the current directory:
 python main.py
 ```
 
-## Testing Virtual Environment Detection
+Scan the current directory explicitly:
+
+```powershell
+python main.py .
+```
+
+Scan a custom path:
+
+```powershell
+python main.py "C:\Users\Administrator\Documents\New project\pyenv-doctor"
+```
+
+## Windows Virtual Environment Note
 
 If you want to test virtual environment detection on Windows, activate the virtual environment first and then run:
 
@@ -119,12 +129,42 @@ Virtual environment detection:
 Virtual environment: detected
 ```
 
+### Example 3: Invalid path
+
+```powershell
+python main.py C:\not-exists-folder
+```
+
+```text
+Error: path does not exist: C:\not-exists-folder
+```
+
+### Example 4: Path is not a directory
+
+```powershell
+python main.py C:\path\to\file.txt
+```
+
+```text
+Error: path is not a directory: C:\path\to\file.txt
+```
+
+## Current Limitations
+
+This MVP does not yet support:
+
+- JSON output
+- automated tests
+- repair suggestions
+- packaging as an installable `pyenv-doctor` command
+
 ## Roadmap
 
-- allow scanning a specific directory
-- add simple exit codes
+- add documented exit codes
 - add basic automated tests
 - support JSON output
+- package the project as a real CLI command
+- add simple repair suggestions for common problems
 
 ## License
 
