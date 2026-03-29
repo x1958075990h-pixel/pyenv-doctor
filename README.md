@@ -4,25 +4,22 @@
 
 It scans a directory, checks whether it looks like a Python project, and tells you whether the current Python interpreter is running inside a virtual environment.
 
-## Current Features
+## What It Checks
 
-This MVP currently supports:
-
-- scanning the current working directory
-- scanning a custom directory path
-- detecting common Python project marker files
-- detecting whether Python is running inside a virtual environment
-- showing clear English error messages for invalid paths
-- returning exit codes for success and failure cases
-
-The project marker files checked are:
+This MVP checks for these common Python project files:
 
 - `requirements.txt`
 - `pyproject.toml`
 - `setup.py`
 - `setup.cfg`
 
-Supported virtual environment cases:
+If at least one of them exists, the tool prints:
+
+`Conclusion: this looks like a Python project`
+
+It also checks whether the current Python is running in a virtual environment.
+
+Supported common cases:
 
 - `venv`
 - `virtualenv`
@@ -38,27 +35,53 @@ This makes it easier to avoid version conflicts between different Python project
 ```text
 pyenv-doctor/
 |-- .gitignore
+|-- .github/
+|   `-- workflows/
+|       `-- ci.yml
+|-- pyproject.toml
 |-- README.md
 |-- requirements.txt
-`-- main.py
+|-- main.py
+`-- tests/
+    `-- test_main.py
 ```
-
-## Requirements
-
-- Python 3.11+
-
-Tested on:
-
-- Python 3.14
 
 ## Installation
 
-This MVP uses only the Python standard library, so there are no third-party dependencies to install.
-
-To check whether Python is available:
+### 1. Make sure Python 3.11 or newer is available
 
 ```powershell
 python --version
+```
+
+### 2. Enter the project directory
+
+```powershell
+cd pyenv-doctor
+```
+
+### 3. Install dependencies
+
+This MVP uses only the Python standard library, so there are no third-party packages to install.
+
+You can still run:
+
+```powershell
+python -m pip install -r requirements.txt
+```
+
+### 4. Install the CLI locally
+
+Install the project from the current directory:
+
+```powershell
+python -m pip install .
+```
+
+For local development, you can also use editable install:
+
+```powershell
+python -m pip install -e .
 ```
 
 ## Run
@@ -69,60 +92,51 @@ Run the tool from the current directory:
 python main.py
 ```
 
-Scan the current directory explicitly:
+Run the installed CLI command:
 
 ```powershell
-python main.py .
+pyenv-doctor
+pyenv-doctor .
+pyenv-doctor C:\my-project
 ```
 
 Scan a custom path:
 
 ```powershell
-python main.py "C:\Users\Administrator\Documents\New project\pyenv-doctor"
+python main.py C:\my-project
 ```
 
-## Exit Codes
+The installed command name is `pyenv-doctor`.
 
-The CLI uses simple process exit codes:
+### Windows note for virtual environment detection
 
-- `0` — the scan completed successfully
-- non-zero — the scan failed because the path was invalid or the arguments were invalid
-
-## Windows Virtual Environment Note
-
-If you want to test virtual environment detection on Windows, activate the virtual environment first and then run:
+If you want to verify virtual environment detection on Windows, activate the virtual environment first and then run:
 
 ```powershell
 python main.py
 ```
 
-This is recommended because `py -3.14 main.py` may use the system Python launcher instead of the activated virtual environment.
+This is recommended because `py -3.14 main.py` may use the system interpreter instead of the currently activated virtual environment.
+
+## Run Tests
+
+Run the test suite with:
+
+```powershell
+python -m unittest discover -s tests -v
+```
+
+## Exit Codes
+
+- `0`: the scan completed successfully
+- non-zero: the scan failed because the path was invalid or the arguments were invalid
 
 ## Example Output
 
-### Example 1: Python project detected, virtual environment not detected
+### Example 1: Python project detected, virtual environment detected
 
 ```text
-Scanned directory: C:\Users\Administrator\Documents\New project\pyenv-doctor
-
-Project file detection:
-- requirements.txt: found
-- pyproject.toml: not found
-- setup.py: not found
-- setup.cfg: not found
-
-Conclusion: this looks like a Python project
-Reason: detected requirements.txt
-
-Virtual environment detection:
-Virtual environment: not detected
-Recommendation: use venv or Conda for an isolated Python environment
-```
-
-### Example 2: Python project detected, virtual environment detected
-
-```text
-Scanned directory: C:\Users\Administrator\Documents\New project\pyenv-doctor
+Scanned directory: C:\demo\my-project
 
 Project file detection:
 - requirements.txt: found
@@ -137,42 +151,32 @@ Virtual environment detection:
 Virtual environment: detected
 ```
 
+### Example 2: No project markers, no virtual environment
+
+```text
+Scanned directory: C:\demo\empty-folder
+
+Project file detection:
+- requirements.txt: not found
+- pyproject.toml: not found
+- setup.py: not found
+- setup.cfg: not found
+
+Conclusion: no clear Python project markers were found
+Details: common Python project files were not found in this directory.
+
+Virtual environment detection:
+Virtual environment: not detected
+Recommendation: use venv or Conda for an isolated Python environment
+```
+
 ### Example 3: Invalid path
 
-```powershell
-python main.py C:\not-exists-folder
-```
-
 ```text
-Error: path does not exist: C:\not-exists-folder
+Error: path does not exist: C:\does-not-exist
 ```
-
-### Example 4: Path is not a directory
-
-```powershell
-python main.py C:\path\to\file.txt
-```
-
-```text
-Error: path is not a directory: C:\path\to\file.txt
-```
-
-## Current Limitations
-
-This MVP does not yet support:
-
-- JSON output
-- automated tests
-- repair suggestions
-- packaging as an installable `pyenv-doctor` command
 
 ## Roadmap
 
-- add basic automated tests
-- support JSON output
-- package the project as a real CLI command
-- add simple repair suggestions for common problems
-
-## License
-
-This project is licensed under the [MIT License](LICENSE).
+- Improve test coverage
+- Support JSON output
