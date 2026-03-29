@@ -14,6 +14,8 @@ This MVP currently supports:
 - detecting whether Python is running inside a virtual environment
 - showing clear English error messages for invalid paths
 - returning exit codes for success and failure cases
+- running a basic automated test suite
+- running tests automatically in GitHub Actions CI
 
 The project marker files checked are:
 
@@ -37,10 +39,19 @@ This makes it easier to avoid version conflicts between different Python project
 
 ```text
 pyenv-doctor/
+|-- .github/
+|   `-- workflows/
+|       `-- ci.yml
 |-- .gitignore
+|-- CODE_OF_CONDUCT.md
+|-- CONTRIBUTING.md
+|-- LICENSE
 |-- README.md
+|-- SECURITY.md
+|-- main.py
 |-- requirements.txt
-`-- main.py
+`-- tests/
+    `-- test_main.py
 ```
 
 ## Requirements
@@ -80,6 +91,23 @@ Scan a custom path:
 ```powershell
 python main.py "C:\Users\Administrator\Documents\New project\pyenv-doctor"
 ```
+
+## Run Tests
+
+Run the local test suite with:
+
+```powershell
+python -m unittest discover -s tests -v
+```
+
+## Continuous Integration
+
+A GitHub Actions workflow runs the test suite automatically on:
+
+- `push`
+- `pull_request`
+
+The workflow currently uses Python 3.11.
 
 ## Exit Codes
 
@@ -162,13 +190,13 @@ Error: path is not a directory: C:\path\to\file.txt
 This MVP does not yet support:
 
 - JSON output
-- automated tests
 - repair suggestions
 - packaging as an installable `pyenv-doctor` command
+- broad test coverage beyond the core CLI paths
 
 ## Roadmap
 
-- add basic automated tests
+- improve test coverage
 - support JSON output
 - package the project as a real CLI command
 - add simple repair suggestions for common problems
