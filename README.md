@@ -1,8 +1,41 @@
 # pyenv-doctor
 
-`pyenv-doctor` is a minimal Python command-line tool for beginners.
+[![PyPI version](https://img.shields.io/pypi/v/python-project-doctor-cli)](https://pypi.org/project/python-project-doctor-cli/)
+[![Python versions](https://img.shields.io/pypi/pyversions/python-project-doctor-cli)](https://pypi.org/project/python-project-doctor-cli/)
+[![CI](https://github.com/x1958075990h-pixel/pyenv-doctor/actions/workflows/ci.yml/badge.svg)](https://github.com/x1958075990h-pixel/pyenv-doctor/actions/workflows/ci.yml)
+[![License](https://img.shields.io/github/license/x1958075990h-pixel/pyenv-doctor)](LICENSE)
 
-It scans a directory, checks whether it looks like a Python project, and tells you whether the current Python interpreter is running inside a virtual environment.
+A beginner-friendly CLI that checks whether a directory looks like a Python project, detects virtual environments, and suggests what to do next.
+
+## Quick Start
+
+Install from PyPI:
+
+```powershell
+python -m pip install python-project-doctor-cli
+```
+
+Run it on the current directory:
+
+```powershell
+pyenv-doctor .
+```
+
+Get machine-readable output:
+
+```powershell
+pyenv-doctor . --json
+```
+
+## Why Use It
+
+`pyenv-doctor` is useful when you want to quickly answer questions like:
+
+- Does this folder look like a Python project?
+- Am I running Python inside a virtual environment?
+- What should I try next?
+
+It is designed to stay small, readable, and friendly to beginners.
 
 ## What It Checks
 
@@ -22,7 +55,7 @@ If at least one of them exists, the tool prints:
 
 `Conclusion: this looks like a Python project`
 
-It also checks whether the current Python is running in a virtual environment.
+It also checks whether the current Python interpreter is running inside a virtual environment.
 After the scan, it prints a short list of beginner-friendly suggestions based on the result.
 
 Supported common cases:
@@ -30,11 +63,6 @@ Supported common cases:
 - `venv`
 - `virtualenv`
 - `Conda`
-
-## Why Virtual Environments Are Useful
-
-Virtual environments help keep project dependencies isolated.
-This makes it easier to avoid version conflicts between different Python projects on the same machine.
 
 ## Project Structure
 
@@ -45,6 +73,7 @@ pyenv-doctor/
 |   |-- workflows/
 |   |   |-- ci.yml
 |   |   `-- publish.yml
+|-- AGENTS.md
 |-- pyproject.toml
 |-- README.md
 |-- requirements.txt
