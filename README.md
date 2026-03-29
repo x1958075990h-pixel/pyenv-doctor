@@ -13,6 +13,7 @@ This MVP currently supports:
 - detecting common Python project marker files
 - detecting whether Python is running inside a virtual environment
 - showing clear English error messages for invalid paths
+- returning exit codes for success and failure cases
 
 The project marker files checked are:
 
@@ -79,6 +80,13 @@ Scan a custom path:
 ```powershell
 python main.py "C:\Users\Administrator\Documents\New project\pyenv-doctor"
 ```
+
+## Exit Codes
+
+The CLI uses simple process exit codes:
+
+- `0` — the scan completed successfully
+- non-zero — the scan failed because the path was invalid or the arguments were invalid
 
 ## Windows Virtual Environment Note
 
@@ -160,7 +168,6 @@ This MVP does not yet support:
 
 ## Roadmap
 
-- add documented exit codes
 - add basic automated tests
 - support JSON output
 - package the project as a real CLI command
