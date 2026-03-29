@@ -3,11 +3,26 @@ requires = ["setuptools>=61"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "pyenv-doctor"
+name = "python-project-doctor-cli"
 version = "0.1.0"
-description = "A minimal CLI tool that checks whether a directory looks like a Python project."
+description = "A beginner-friendly CLI that checks whether a directory looks like a Python project and suggests what to do next."
 readme = "README.md"
 requires-python = ">=3.11"
+license = { file = "LICENSE" }
+authors = [{ name = "x1958075990h-pixel" }]
+classifiers = [
+  "License :: OSI Approved :: MIT License",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+]
+
+[project.urls]
+Homepage = "https://github.com/x1958075990h-pixel/pyenv-doctor"
+Repository = "https://github.com/x1958075990h-pixel/pyenv-doctor"
+Issues = "https://github.com/x1958075990h-pixel/issues"
 
 [project.scripts]
 pyenv-doctor = "main:main"

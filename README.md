@@ -42,11 +42,13 @@ This makes it easier to avoid version conflicts between different Python project
 pyenv-doctor/
 |-- .gitignore
 |-- .github/
-|   `-- workflows/
-|       `-- ci.yml
+|   |-- workflows/
+|   |   |-- ci.yml
+|   |   `-- publish.yml
 |-- pyproject.toml
 |-- README.md
 |-- requirements.txt
+|-- LICENSE
 |-- main.py
 `-- tests/
     `-- test_main.py
@@ -60,25 +62,29 @@ pyenv-doctor/
 python --version
 ```
 
-### 2. Enter the project directory
+### 2. Install from PyPI
 
-```powershell
-cd pyenv-doctor
+The PyPI package name is:
+
+```text
+python-project-doctor-cli
 ```
 
-### 3. Install dependencies
-
-This MVP uses only the Python standard library, so there are no third-party packages to install.
-
-You can still run:
+Install it with:
 
 ```powershell
-python -m pip install -r requirements.txt
+python -m pip install python-project-doctor-cli
 ```
 
-### 4. Install the CLI locally
+The installed command name is still:
 
-Install the project from the current directory:
+```powershell
+pyenv-doctor
+```
+
+### 3. Install locally from source
+
+Clone the repository, enter the project directory, and install it locally:
 
 ```powershell
 python -m pip install .
@@ -92,12 +98,6 @@ python -m pip install -e .
 
 ## Run
 
-Run the tool from the current directory:
-
-```powershell
-python main.py
-```
-
 Run the installed CLI command:
 
 ```powershell
@@ -107,14 +107,13 @@ pyenv-doctor C:\my-project
 pyenv-doctor . --json
 ```
 
-Scan a custom path:
+Run the tool from source:
 
 ```powershell
+python main.py
 python main.py C:\my-project
 python main.py C:\my-project --json
 ```
-
-The installed command name is `pyenv-doctor`.
 
 ### Windows note for virtual environment detection
 
@@ -240,6 +239,13 @@ Suggestions:
   ]
 }
 ```
+
+## Publishing
+
+This repository includes a GitHub Actions workflow for trusted publishing to PyPI when a GitHub release is published.
+
+To use it, first add this repository as a trusted publisher in your PyPI project settings.
+Then create a GitHub release to trigger the publish workflow.
 
 ## Roadmap
 
