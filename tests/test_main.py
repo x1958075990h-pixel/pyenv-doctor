@@ -7,6 +7,8 @@ import tempfile
 import unittest
 from pathlib import Path
 
+import main as cli_main
+
 
 # These paths point to the project root and the CLI entry file.
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
@@ -41,6 +43,7 @@ class PyenvDoctorCliTests(unittest.TestCase):
         self.assertIn(f"Scanned directory: {PROJECT_ROOT.resolve()}", result.stdout)
         self.assertIn("Project file detection:", result.stdout)
         self.assertIn("Virtual environment detection:", result.stdout)
+        self.assertIn("Suggestions:", result.stdout)
 
     def test_scan_specific_directory_succeeds(self) -> None:
         """The CLI should scan a provided directory path."""
@@ -52,6 +55,10 @@ class PyenvDoctorCliTests(unittest.TestCase):
             self.assertIn(f"Scanned directory: {scan_path.resolve()}", result.stdout)
             self.assertIn(
                 "Conclusion: no clear Python project markers were found",
+                result.stdout,
+            )
+            self.assertIn(
+                "Verify that you are scanning the project root directory.",
                 result.stdout,
             )
 
@@ -105,6 +112,10 @@ class PyenvDoctorCliTests(unittest.TestCase):
             self.assertFalse(payload["looks_like_python_project"])
             self.assertIsInstance(payload["virtual_environment_detected"], bool)
             self.assertIsNone(payload["error"])
+            self.assertEqual(
+                payload["suggestions"],
+                ["Verify that you are scanning the project root directory."],
+            )
 
     def test_json_output_detects_marker_file(self) -> None:
         """JSON mode should include marker files and project detection status."""
@@ -122,6 +133,10 @@ class PyenvDoctorCliTests(unittest.TestCase):
             self.assertEqual(payload["found_files"], ["pyproject.toml"])
             self.assertTrue(payload["looks_like_python_project"])
             self.assertIsNone(payload["error"])
+            self.assertEqual(
+                payload["suggestions"],
+                ["Open pyproject.toml to check how this project should be installed or run."],
+            )
 
     def test_json_output_for_missing_path(self) -> None:
         """JSON mode should return a structured error for a missing path."""
@@ -137,6 +152,7 @@ class PyenvDoctorCliTests(unittest.TestCase):
             self.assertEqual(payload["found_files"], [])
             self.assertFalse(payload["looks_like_python_project"])
             self.assertIn("Error: path does not exist:", payload["error"])
+            self.assertEqual(payload["suggestions"], ["Check the path spelling and try again."])
 
     def test_json_output_for_file_path(self) -> None:
         """JSON mode should return a structured error for a file path."""
@@ -155,6 +171,10 @@ class PyenvDoctorCliTests(unittest.TestCase):
             self.assertEqual(payload["found_files"], [])
             self.assertFalse(payload["looks_like_python_project"])
             self.assertIn("Error: path is not a directory:", payload["error"])
+            self.assertEqual(
+                payload["suggestions"],
+                ["Pass the project directory path instead of a single file."],
+            )
 
     def test_json_output_for_argument_error(self) -> None:
         """JSON mode should return structured output for argument parsing errors."""
@@ -168,6 +188,46 @@ class PyenvDoctorCliTests(unittest.TestCase):
         self.assertEqual(payload["found_files"], [])
         self.assertFalse(payload["looks_like_python_project"])
         self.assertIn("Argument error:", payload["error"])
+        self.assertEqual(
+            payload["suggestions"],
+            ["Run pyenv-doctor --help to review the available arguments."],
+        )
+
+    def test_requirements_suggestion_without_virtual_environment(self) -> None:
+        """Requirements files should suggest using a virtual environment when needed."""
+        suggestions = cli_main.build_suggestions(
+            found_files=["requirements.txt"],
+            virtual_environment_detected=False,
+        )
+
+        self.assertIn(
+            "Create and activate a virtual environment before installing dependencies.",
+            suggestions,
+        )
+
+    def test_requirements_suggestion_is_skipped_inside_virtual_environment(self) -> None:
+        """The tool should not repeat virtual environment setup advice when already active."""
+        suggestions = cli_main.build_suggestions(
+            found_files=["requirements.txt"],
+            virtual_environment_detected=True,
+        )
+
+        self.assertNotIn(
+            "Create and activate a virtual environment before installing dependencies.",
+            suggestions,
+        )
+
+    def test_pyproject_suggestion_is_included(self) -> None:
+        """pyproject.toml should trigger a simple install or run suggestion."""
+        suggestions = cli_main.build_suggestions(
+            found_files=["pyproject.toml"],
+            virtual_environment_detected=True,
+        )
+
+        self.assertIn(
+            "Open pyproject.toml to check how this project should be installed or run.",
+            suggestions,
+        )
 
 
 if __name__ == "__main__":

@@ -106,21 +106,68 @@ def is_virtual_environment_detected() -> bool:
     return False
 
 
+def build_suggestions(
+    found_files: list[str] | None = None,
+    error: str | None = None,
+    virtual_environment_detected: bool = False,
+) -> list[str]:
+    """Build a short list of beginner-friendly next steps."""
+    detected_files = found_files if found_files is not None else []
+
+    # Error suggestions should stay focused on fixing the immediate problem first.
+    if error is not None:
+        if "path does not exist" in error:
+            return ["Check the path spelling and try again."]
+        if "path is not a directory" in error:
+            return ["Pass the project directory path instead of a single file."]
+        if "Argument error:" in error:
+            return ["Run pyenv-doctor --help to review the available arguments."]
+        return []
+
+    suggestions: list[str] = []
+
+    # If nothing was detected, the safest first step is to confirm the scan location.
+    if not detected_files:
+        suggestions.append("Verify that you are scanning the project root directory.")
+
+    # pyproject.toml often defines the project's preferred install and run workflow.
+    if "pyproject.toml" in detected_files:
+        suggestions.append("Open pyproject.toml to check how this project should be installed or run.")
+
+    # Only suggest a virtual environment when one is not already active.
+    if "requirements.txt" in detected_files and not virtual_environment_detected:
+        suggestions.append("Create and activate a virtual environment before installing dependencies.")
+
+    return suggestions
+
+
 def build_result(
     scanned_directory: str | None = None,
     found_files: list[str] | None = None,
     error: str | None = None,
+    virtual_environment_detected: bool | None = None,
 ) -> dict[str, object]:
     """Build a structured result that works for both text and JSON output."""
     # Default to an empty list so the JSON structure stays predictable.
     detected_files = found_files if found_files is not None else []
+    env_detected = (
+        virtual_environment_detected
+        if virtual_environment_detected is not None
+        else is_virtual_environment_detected()
+    )
+    suggestions = build_suggestions(
+        found_files=detected_files,
+        error=error,
+        virtual_environment_detected=env_detected,
+    )
 
     return {
         "scanned_directory": scanned_directory,
         "found_files": detected_files,
         "looks_like_python_project": bool(detected_files),
-        "virtual_environment_detected": is_virtual_environment_detected(),
+        "virtual_environment_detected": env_detected,
         "error": error,
+        "suggestions": suggestions,
     }
 
 
@@ -152,16 +199,31 @@ def print_project_result(scan_path: Path, found_files: list[str]) -> None:
         print("Details: common Python project files were not found in this directory.")
 
 
-def print_virtual_environment_result() -> None:
+def print_virtual_environment_result(virtual_environment_detected: bool) -> None:
     """Print the virtual environment detection result."""
     print()
     print("Virtual environment detection:")
 
-    if is_virtual_environment_detected():
+    if virtual_environment_detected:
         print("Virtual environment: detected")
     else:
         print("Virtual environment: not detected")
         print("Recommendation: use venv or Conda for an isolated Python environment")
+
+
+def print_suggestions(suggestions: list[str], stream=None) -> None:
+    """Print a short suggestions section after the main result."""
+    output_stream = stream if stream is not None else sys.stdout
+    print(file=output_stream)
+    print("Suggestions:", file=output_stream)
+
+    if not suggestions:
+        print("- No immediate suggestions.", file=output_stream)
+        return
+
+    # Keep each suggestion short and actionable for beginners.
+    for suggestion in suggestions:
+        print(f"- {suggestion}", file=output_stream)
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -174,34 +236,42 @@ def main(argv: list[str] | None = None) -> int:
     # Detect JSON mode early so parse errors can also return JSON when requested.
     parser.json_output = "--json" in arguments
     args = parser.parse_args(arguments)
+    virtual_environment_detected = is_virtual_environment_detected()
 
     # Scan either the provided directory or, by default, the current working directory.
     scan_path, error_message, displayed_path = get_scan_path(args.path)
 
     # Keep the existing non-zero exit behavior for invalid paths.
     if error_message is not None:
+        error_result = build_result(
+            scanned_directory=displayed_path,
+            error=error_message,
+            virtual_environment_detected=virtual_environment_detected,
+        )
         if args.json:
-            print_json_result(build_result(scanned_directory=displayed_path, error=error_message))
+            print_json_result(error_result)
         else:
             print(error_message, file=sys.stderr)
+            print_suggestions(error_result["suggestions"], stream=sys.stderr)
         return 1
 
     # At this point the scan path is valid and safe to inspect.
     assert scan_path is not None
     found_files = find_marker_files(scan_path)
+    result = build_result(
+        scanned_directory=displayed_path,
+        found_files=found_files,
+        virtual_environment_detected=virtual_environment_detected,
+    )
 
     # JSON mode returns only structured data and skips the human-readable text blocks.
     if args.json:
-        print_json_result(
-            build_result(
-                scanned_directory=displayed_path,
-                found_files=found_files,
-            )
-        )
+        print_json_result(result)
         return 0
 
     print_project_result(scan_path, found_files)
-    print_virtual_environment_result()
+    print_virtual_environment_result(virtual_environment_detected)
+    print_suggestions(result["suggestions"])
     return 0
 
 

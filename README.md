@@ -18,6 +18,7 @@ If at least one of them exists, the tool prints:
 `Conclusion: this looks like a Python project`
 
 It also checks whether the current Python is running in a virtual environment.
+After the scan, it prints a short list of beginner-friendly suggestions based on the result.
 
 Supported common cases:
 
@@ -149,6 +150,7 @@ The JSON output includes:
 - `looks_like_python_project`
 - `virtual_environment_detected`
 - `error`
+- `suggestions`
 
 ## Example Output
 
@@ -158,16 +160,19 @@ The JSON output includes:
 Scanned directory: C:\demo\my-project
 
 Project file detection:
-- requirements.txt: found
-- pyproject.toml: not found
+- requirements.txt: not found
+- pyproject.toml: found
 - setup.py: not found
 - setup.cfg: not found
 
 Conclusion: this looks like a Python project
-Reason: detected requirements.txt
+Reason: detected pyproject.toml
 
 Virtual environment detection:
 Virtual environment: detected
+
+Suggestions:
+- Open pyproject.toml to check how this project should be installed or run.
 ```
 
 ### Example 2: No project markers, no virtual environment
@@ -187,12 +192,18 @@ Details: common Python project files were not found in this directory.
 Virtual environment detection:
 Virtual environment: not detected
 Recommendation: use venv or Conda for an isolated Python environment
+
+Suggestions:
+- Verify that you are scanning the project root directory.
 ```
 
 ### Example 3: Invalid path
 
 ```text
 Error: path does not exist: C:\does-not-exist
+
+Suggestions:
+- Check the path spelling and try again.
 ```
 
 ### Example 4: JSON output
@@ -205,7 +216,10 @@ Error: path does not exist: C:\does-not-exist
   ],
   "looks_like_python_project": true,
   "virtual_environment_detected": false,
-  "error": null
+  "error": null,
+  "suggestions": [
+    "Create and activate a virtual environment before installing dependencies."
+  ]
 }
 ```
 
