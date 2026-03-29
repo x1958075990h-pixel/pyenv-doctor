@@ -98,12 +98,14 @@ Run the installed CLI command:
 pyenv-doctor
 pyenv-doctor .
 pyenv-doctor C:\my-project
+pyenv-doctor . --json
 ```
 
 Scan a custom path:
 
 ```powershell
 python main.py C:\my-project
+python main.py C:\my-project --json
 ```
 
 The installed command name is `pyenv-doctor`.
@@ -130,6 +132,23 @@ python -m unittest discover -s tests -v
 
 - `0`: the scan completed successfully
 - non-zero: the scan failed because the path was invalid or the arguments were invalid
+
+## JSON Output
+
+Use `--json` to get machine-readable output:
+
+```powershell
+pyenv-doctor . --json
+python main.py . --json
+```
+
+The JSON output includes:
+
+- `scanned_directory`
+- `found_files`
+- `looks_like_python_project`
+- `virtual_environment_detected`
+- `error`
 
 ## Example Output
 
@@ -176,7 +195,21 @@ Recommendation: use venv or Conda for an isolated Python environment
 Error: path does not exist: C:\does-not-exist
 ```
 
+### Example 4: JSON output
+
+```json
+{
+  "scanned_directory": "C:\\demo\\my-project",
+  "found_files": [
+    "requirements.txt"
+  ],
+  "looks_like_python_project": true,
+  "virtual_environment_detected": false,
+  "error": null
+}
+```
+
 ## Roadmap
 
 - Improve test coverage
-- Support JSON output
+- Add more project marker checks

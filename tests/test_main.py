@@ -1,5 +1,6 @@
 """Minimal tests for the pyenv-doctor command-line tool."""
 
+import json
 import subprocess
 import sys
 import tempfile
@@ -88,6 +89,85 @@ class PyenvDoctorCliTests(unittest.TestCase):
             self.assertEqual(result.returncode, 0)
             self.assertIn("- requirements.txt: found", result.stdout)
             self.assertIn("Conclusion: this looks like a Python project", result.stdout)
+
+    def test_json_output_for_successful_scan(self) -> None:
+        """JSON mode should return structured output for a valid directory."""
+        with tempfile.TemporaryDirectory() as temp_dir:
+            scan_path = Path(temp_dir)
+            result = self.run_cli(str(scan_path), "--json")
+
+            self.assertEqual(result.returncode, 0)
+            self.assertEqual(result.stderr, "")
+
+            payload = json.loads(result.stdout)
+            self.assertEqual(payload["scanned_directory"], str(scan_path.resolve()))
+            self.assertEqual(payload["found_files"], [])
+            self.assertFalse(payload["looks_like_python_project"])
+            self.assertIsInstance(payload["virtual_environment_detected"], bool)
+            self.assertIsNone(payload["error"])
+
+    def test_json_output_detects_marker_file(self) -> None:
+        """JSON mode should include marker files and project detection status."""
+        with tempfile.TemporaryDirectory() as temp_dir:
+            scan_path = Path(temp_dir)
+            marker_file = scan_path / "pyproject.toml"
+
+            # Use one marker file so the JSON result stays easy to verify.
+            marker_file.write_text("[project]\nname = 'demo'\n", encoding="utf-8")
+            result = self.run_cli(str(scan_path), "--json")
+
+            self.assertEqual(result.returncode, 0)
+
+            payload = json.loads(result.stdout)
+            self.assertEqual(payload["found_files"], ["pyproject.toml"])
+            self.assertTrue(payload["looks_like_python_project"])
+            self.assertIsNone(payload["error"])
+
+    def test_json_output_for_missing_path(self) -> None:
+        """JSON mode should return a structured error for a missing path."""
+        with tempfile.TemporaryDirectory() as temp_dir:
+            missing_path = Path(temp_dir) / "missing-folder"
+            result = self.run_cli(str(missing_path), "--json")
+
+            self.assertEqual(result.returncode, 1)
+            self.assertEqual(result.stderr, "")
+
+            payload = json.loads(result.stdout)
+            self.assertEqual(payload["scanned_directory"], str(missing_path))
+            self.assertEqual(payload["found_files"], [])
+            self.assertFalse(payload["looks_like_python_project"])
+            self.assertIn("Error: path does not exist:", payload["error"])
+
+    def test_json_output_for_file_path(self) -> None:
+        """JSON mode should return a structured error for a file path."""
+        with tempfile.TemporaryDirectory() as temp_dir:
+            file_path = Path(temp_dir) / "example.txt"
+
+            # Create a file so the CLI can report that the path is not a directory.
+            file_path.write_text("example", encoding="utf-8")
+            result = self.run_cli(str(file_path), "--json")
+
+            self.assertEqual(result.returncode, 1)
+            self.assertEqual(result.stderr, "")
+
+            payload = json.loads(result.stdout)
+            self.assertEqual(payload["scanned_directory"], str(file_path))
+            self.assertEqual(payload["found_files"], [])
+            self.assertFalse(payload["looks_like_python_project"])
+            self.assertIn("Error: path is not a directory:", payload["error"])
+
+    def test_json_output_for_argument_error(self) -> None:
+        """JSON mode should return structured output for argument parsing errors."""
+        result = self.run_cli("one", "two", "--json")
+
+        self.assertEqual(result.returncode, 2)
+        self.assertEqual(result.stderr, "")
+
+        payload = json.loads(result.stdout)
+        self.assertIsNone(payload["scanned_directory"])
+        self.assertEqual(payload["found_files"], [])
+        self.assertFalse(payload["looks_like_python_project"])
+        self.assertIn("Argument error:", payload["error"])
 
 
 if __name__ == "__main__":
