@@ -27,6 +27,25 @@ Get machine-readable output:
 pyenv-doctor . --json
 ```
 
+Example JSON output:
+
+```json
+{
+  "scanned_directory": "C:\\demo\\my-project",
+  "found_files": [
+    "requirements.txt",
+    "pyproject.toml"
+  ],
+  "looks_like_python_project": true,
+  "virtual_environment_detected": false,
+  "error": null,
+  "suggestions": [
+    "Open pyproject.toml to check how this project should be installed or run.",
+    "Create and activate a virtual environment before installing dependencies."
+  ]
+}
+```
+
 ## Why Use It
 
 `pyenv-doctor` is useful when you want to quickly answer questions like:
