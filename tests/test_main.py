@@ -97,6 +97,50 @@ class PyenvDoctorCliTests(unittest.TestCase):
             self.assertIn("- requirements.txt: found", result.stdout)
             self.assertIn("Conclusion: this looks like a Python project", result.stdout)
 
+    def test_new_marker_files_are_detected_in_text_output(self) -> None:
+        """The text output should list the new marker files and matching suggestions."""
+        with tempfile.TemporaryDirectory() as temp_dir:
+            scan_path = Path(temp_dir)
+            new_marker_files = [
+                "Pipfile",
+                "poetry.lock",
+                "uv.lock",
+                "environment.yml",
+                ".python-version",
+            ]
+
+            for file_name in new_marker_files:
+                (scan_path / file_name).write_text("test\n", encoding="utf-8")
+
+            result = self.run_cli(str(scan_path))
+
+            self.assertEqual(result.returncode, 0)
+            self.assertIn("- Pipfile: found", result.stdout)
+            self.assertIn("- poetry.lock: found", result.stdout)
+            self.assertIn("- uv.lock: found", result.stdout)
+            self.assertIn("- environment.yml: found", result.stdout)
+            self.assertIn("- .python-version: found", result.stdout)
+            self.assertIn(
+                "Open Pipfile to review the project's dependencies and environment settings.",
+                result.stdout,
+            )
+            self.assertIn(
+                "If this project uses Poetry, review pyproject.toml and try poetry install.",
+                result.stdout,
+            )
+            self.assertIn(
+                "If this project uses uv, review the project instructions and try uv sync.",
+                result.stdout,
+            )
+            self.assertIn(
+                "If this project uses Conda, create the environment from environment.yml before running it.",
+                result.stdout,
+            )
+            self.assertIn(
+                "Check .python-version to see which Python version this project expects.",
+                result.stdout,
+            )
+
     def test_json_output_for_successful_scan(self) -> None:
         """JSON mode should return structured output for a valid directory."""
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -136,6 +180,47 @@ class PyenvDoctorCliTests(unittest.TestCase):
             self.assertEqual(
                 payload["suggestions"],
                 ["Open pyproject.toml to check how this project should be installed or run."],
+            )
+
+    def test_json_output_includes_new_marker_files(self) -> None:
+        """JSON mode should include the new marker files and their suggestions."""
+        with tempfile.TemporaryDirectory() as temp_dir:
+            scan_path = Path(temp_dir)
+
+            for file_name in [
+                "Pipfile",
+                "poetry.lock",
+                "uv.lock",
+                "environment.yml",
+                ".python-version",
+            ]:
+                (scan_path / file_name).write_text("test\n", encoding="utf-8")
+
+            result = self.run_cli(str(scan_path), "--json")
+
+            self.assertEqual(result.returncode, 0)
+
+            payload = json.loads(result.stdout)
+            self.assertEqual(
+                payload["found_files"],
+                [
+                    "Pipfile",
+                    "poetry.lock",
+                    "uv.lock",
+                    "environment.yml",
+                    ".python-version",
+                ],
+            )
+            self.assertTrue(payload["looks_like_python_project"])
+            self.assertEqual(
+                payload["suggestions"],
+                [
+                    "Open Pipfile to review the project's dependencies and environment settings.",
+                    "If this project uses Poetry, review pyproject.toml and try poetry install.",
+                    "If this project uses uv, review the project instructions and try uv sync.",
+                    "If this project uses Conda, create the environment from environment.yml before running it.",
+                    "Check .python-version to see which Python version this project expects.",
+                ],
             )
 
     def test_json_output_for_missing_path(self) -> None:
@@ -226,6 +311,40 @@ class PyenvDoctorCliTests(unittest.TestCase):
 
         self.assertIn(
             "Open pyproject.toml to check how this project should be installed or run.",
+            suggestions,
+        )
+
+    def test_new_marker_suggestions_are_included(self) -> None:
+        """The new marker files should generate short, actionable suggestions."""
+        suggestions = cli_main.build_suggestions(
+            found_files=[
+                "Pipfile",
+                "poetry.lock",
+                "uv.lock",
+                "environment.yml",
+                ".python-version",
+            ],
+            virtual_environment_detected=True,
+        )
+
+        self.assertIn(
+            "Open Pipfile to review the project's dependencies and environment settings.",
+            suggestions,
+        )
+        self.assertIn(
+            "If this project uses Poetry, review pyproject.toml and try poetry install.",
+            suggestions,
+        )
+        self.assertIn(
+            "If this project uses uv, review the project instructions and try uv sync.",
+            suggestions,
+        )
+        self.assertIn(
+            "If this project uses Conda, create the environment from environment.yml before running it.",
+            suggestions,
+        )
+        self.assertIn(
+            "Check .python-version to see which Python version this project expects.",
             suggestions,
         )
 

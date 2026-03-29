@@ -12,6 +12,11 @@ This MVP checks for these common Python project files:
 - `pyproject.toml`
 - `setup.py`
 - `setup.cfg`
+- `Pipfile`
+- `poetry.lock`
+- `uv.lock`
+- `environment.yml`
+- `.python-version`
 
 If at least one of them exists, the tool prints:
 
@@ -164,15 +169,21 @@ Project file detection:
 - pyproject.toml: found
 - setup.py: not found
 - setup.cfg: not found
+- Pipfile: not found
+- poetry.lock: found
+- uv.lock: not found
+- environment.yml: not found
+- .python-version: not found
 
 Conclusion: this looks like a Python project
-Reason: detected pyproject.toml
+Reason: detected pyproject.toml, poetry.lock
 
 Virtual environment detection:
 Virtual environment: detected
 
 Suggestions:
 - Open pyproject.toml to check how this project should be installed or run.
+- If this project uses Poetry, review pyproject.toml and try poetry install.
 ```
 
 ### Example 2: No project markers, no virtual environment
@@ -185,6 +196,11 @@ Project file detection:
 - pyproject.toml: not found
 - setup.py: not found
 - setup.cfg: not found
+- Pipfile: not found
+- poetry.lock: not found
+- uv.lock: not found
+- environment.yml: not found
+- .python-version: not found
 
 Conclusion: no clear Python project markers were found
 Details: common Python project files were not found in this directory.
@@ -212,13 +228,15 @@ Suggestions:
 {
   "scanned_directory": "C:\\demo\\my-project",
   "found_files": [
-    "requirements.txt"
+    "Pipfile",
+    ".python-version"
   ],
   "looks_like_python_project": true,
   "virtual_environment_detected": false,
   "error": null,
   "suggestions": [
-    "Create and activate a virtual environment before installing dependencies."
+    "Open Pipfile to review the project's dependencies and environment settings.",
+    "Check .python-version to see which Python version this project expects."
   ]
 }
 ```
@@ -226,4 +244,4 @@ Suggestions:
 ## Roadmap
 
 - Improve test coverage
-- Add more project marker checks
+- Improve detection rules for different Python workflows

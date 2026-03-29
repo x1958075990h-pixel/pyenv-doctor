@@ -13,6 +13,11 @@ PROJECT_MARKER_FILES = [
     "pyproject.toml",
     "setup.py",
     "setup.cfg",
+    "Pipfile",
+    "poetry.lock",
+    "uv.lock",
+    "environment.yml",
+    ".python-version",
 ]
 
 
@@ -133,6 +138,26 @@ def build_suggestions(
     # pyproject.toml often defines the project's preferred install and run workflow.
     if "pyproject.toml" in detected_files:
         suggestions.append("Open pyproject.toml to check how this project should be installed or run.")
+
+    # Pipfile usually means the project expects a Pipenv-style workflow.
+    if "Pipfile" in detected_files:
+        suggestions.append("Open Pipfile to review the project's dependencies and environment settings.")
+
+    # poetry.lock usually appears in Poetry-based projects.
+    if "poetry.lock" in detected_files:
+        suggestions.append("If this project uses Poetry, review pyproject.toml and try poetry install.")
+
+    # uv.lock usually appears in uv-managed projects.
+    if "uv.lock" in detected_files:
+        suggestions.append("If this project uses uv, review the project instructions and try uv sync.")
+
+    # environment.yml usually points to a Conda environment definition.
+    if "environment.yml" in detected_files:
+        suggestions.append("If this project uses Conda, create the environment from environment.yml before running it.")
+
+    # .python-version often records the expected Python version for the project.
+    if ".python-version" in detected_files:
+        suggestions.append("Check .python-version to see which Python version this project expects.")
 
     # Only suggest a virtual environment when one is not already active.
     if "requirements.txt" in detected_files and not virtual_environment_detected:
