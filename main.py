@@ -19,7 +19,7 @@ def build_parser() -> argparse.ArgumentParser:
     """Create the command-line argument parser."""
     parser = argparse.ArgumentParser(
         prog="pyenv-doctor",
-        description="Scan the current directory and check whether it looks like a Python project.",
+        description="Scan a directory and check whether it looks like a Python project.",
     )
     # This optional path keeps the CLI simple: no argument means current directory.
     parser.add_argument(
@@ -114,8 +114,8 @@ def print_virtual_environment_result() -> None:
         print("Recommendation: use venv or Conda for an isolated Python environment")
 
 
-def main() -> None:
-    """Run the program."""
+def main() -> int:
+    """Run the program and return an exit code."""
     # Parse arguments now so the CLI structure stays ready for small future changes.
     parser = build_parser()
     args = parser.parse_args()
@@ -125,8 +125,9 @@ def main() -> None:
     found_files = find_marker_files(scan_path)
     print_project_result(scan_path, found_files)
     print_virtual_environment_result()
+    return 0
 
 
 if __name__ == "__main__":
-    # Allow direct execution with `python main.py`.
-    main()
+    # Allow direct execution with `python main.py` and return a process exit code.
+    sys.exit(main())
