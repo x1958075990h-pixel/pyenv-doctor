@@ -1,0 +1,16 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pyenv-doctor"
+version = "0.1.0"
+description = "A minimal CLI tool that checks whether a directory looks like a Python project."
+readme = "README.md"
+requires-python = ">=3.11"
+
+[project.scripts]
+pyenv-doctor = "main:main"
+
+[tool.setuptools]
+py-modules = ["main"]
