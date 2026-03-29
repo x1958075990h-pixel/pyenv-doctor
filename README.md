@@ -245,3 +245,7 @@ Suggestions:
 
 - Improve test coverage
 - Improve detection rules for different Python workflows
+
+## License
+
+This project is licensed under the [MIT License](LICENSE).
